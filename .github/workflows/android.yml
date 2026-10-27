@@ -27,12 +27,18 @@ jobs:
           gradle-version: 8.11
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          cmdline-tools-version: 11076708
-          packages: |
-            build-tools;35.0.0
-            platforms;android-35
+        run: |
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
+          curl -sSLo cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q cmdline-tools.zip
+          rm cmdline-tools.zip
+          mv cmdline-tools latest
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0" "platforms;android-35"
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          PATH: ${{ env.ANDROID_HOME }}/cmdline-tools/latest/bin:${{ env.ANDROID_HOME }}/platform-tools:${{ env.PATH }}
 
       - name: Configure local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
