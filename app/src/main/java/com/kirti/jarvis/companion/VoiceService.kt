@@ -2,6 +2,7 @@ package com.kirti.jarvis.companion
 
 import android.app.Service
 import android.content.Intent
+import android.os.Bundle
 import android.os.IBinder
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -51,8 +52,8 @@ class VoiceService : Service() {
                     isListening = false
                 }
 
-                override fun onResults(results: Bundle) {
-                    val matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                override fun onResults(results: Bundle?) {
+                    val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     if (!matches.isNullOrEmpty()) {
                         val text = matches[0]
                         Log.d(TAG, "Recognized: $text")
@@ -61,7 +62,7 @@ class VoiceService : Service() {
                     isListening = false
                 }
 
-                override fun onPartialResults(partialResults: Bundle) {}
+                override fun onPartialResults(partialResults: Bundle?) {}
 
                 override fun onEvent(eventType: Int, params: Bundle?) {}
             })

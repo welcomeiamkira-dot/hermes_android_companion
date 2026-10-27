@@ -53,7 +53,6 @@ class MainActivity : AppCompatActivity() {
         webView.settings.databaseEnabled = true
         webView.settings.allowFileAccess = true
         webView.settings.allowContentAccess = true
-        webView.settings.supportZoom = true
         webView.settings.displayZoomControls = false
         webView.settings.loadWithOverviewMode = true
         webView.settings.useWideViewPort = true
