@@ -1,0 +1,23 @@
+# Local SDK configuration - not for version control
+local.properties
+
+# Gradle caches
+.gradle/
+build/
+
+# Built artifacts
+app/build/
+*.apk
+*.ap_
+*.dex
+*.jar
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
