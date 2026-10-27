@@ -128,8 +128,10 @@ class MainActivity : AppCompatActivity() {
         Log.e(TAG, "Fatal error in onCreate", e)
         Toast.makeText(this, "App startup error: ${e.message}", Toast.LENGTH_LONG).show()
     }
+}
 
-private fun requestPermissions() {
+    // Class methods continue below
+    private fun requestPermissions() {
         val missing = PERMISSIONS.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
