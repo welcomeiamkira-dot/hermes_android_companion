@@ -23,6 +23,8 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private lateinit var webView: WebView
+    private lateinit var errorView: LinearLayout
+    private lateinit var retryButton: Button
     private var speechRecognizer: SpeechRecognizer? = null
     private var textToSpeech: TextToSpeech? = null
     private var isListening = false
@@ -44,10 +46,14 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        try {
+            super.onCreate(savedInstanceState)
+            setContentView(R.layout.activity_main)
 
-        webView = findViewById(R.id.webView)
+            webView = findViewById(R.id.webView)
+            errorView = findViewById(R.id.errorView)
+            retryButton = findViewById(R.id.retryButton)
+
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
         webView.settings.databaseEnabled = true
@@ -56,9 +62,46 @@ class MainActivity : AppCompatActivity() {
         webView.settings.displayZoomControls = false
         webView.settings.loadWithOverviewMode = true
         webView.settings.useWideViewPort = true
-        webView.webViewClient = WebViewClient()
+
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                webView.visibility = View.VISIBLE
+                errorView.visibility = View.GONE
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                Log.d(TAG, "Page loaded: $url")
+            }
+
+            override fun onReceivedError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                error: WebResourceError?
+            ) {
+                super.onReceivedError(view, request, error)
+                Log.e(TAG, "WebView error: ${error?.description}")
+                if (request?.isForMainFrame == true) {
+                    showError("Cannot connect to Hermes server.\nMake sure dashboard is running on port 9119.")
+                }
+            }
+
+            override fun onReceivedHttpError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                errorResponse: WebResourceResponse?
+            ) {
+                super.onReceivedHttpError(view, request, errorResponse)
+                Log.e(TAG, "HTTP error: ${errorResponse?.statusCode}")
+            }
+        }
+
         webView.webChromeClient = WebChromeClient()
-        webView.loadUrl("http://127.0.0.1:9119")
+
+        retryButton.setOnClickListener {
+            loadDashboard()
+        }
 
         // Initialize TTS
         textToSpeech = TextToSpeech(this) { status ->
@@ -74,6 +117,12 @@ class MainActivity : AppCompatActivity() {
 
         // Request permissions
         requestPermissions()
+
+        // Load dashboard
+        loadDashboard()
+    } catch (e: Exception) {
+        Log.e(TAG, "Fatal error in onCreate", e)
+        Toast.makeText(this, "App startup error: ${e.message}", Toast.LENGTH_LONG).show()
     }
 
     private fun requestPermissions() {
@@ -83,6 +132,24 @@ class MainActivity : AppCompatActivity() {
         if (missing.isNotEmpty()) {
             permissionLauncher.launch(missing.toTypedArray())
         }
+    }
+
+    private fun loadDashboard() {
+        try {
+            webView.visibility = View.VISIBLE
+            errorView.visibility = View.GONE
+            webView.loadUrl("http://127.0.0.1:9119")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading URL", e)
+            showError("Failed to load dashboard: ${e.message}")
+        }
+    }
+
+    private fun showError(message: String) {
+        webView.visibility = View.GONE
+        errorView.visibility = View.VISIBLE
+        val errorText = findViewById<TextView>(R.id.errorText)
+        errorText.text = message
     }
 
     private fun setupVoiceButton() {
@@ -130,8 +197,8 @@ class MainActivity : AppCompatActivity() {
                     stopVoiceInput()
                 }
 
-                override fun onResults(results: Bundle) {
-                    val matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                override fun onResults(results: Bundle?) {
+                    val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     if (!matches.isNullOrEmpty()) {
                         val text = matches[0]
                         Log.d(TAG, "Recognized: $text")
@@ -141,7 +208,7 @@ class MainActivity : AppCompatActivity() {
                     stopVoiceInput()
                 }
 
-                override fun onPartialResults(partialResults: Bundle) {}
+                override fun onPartialResults(partialResults: Bundle?) {}
 
                 override fun onEvent(eventType: Int, params: Bundle?) {}
             })
