@@ -17,7 +17,8 @@
         android:allowBackup="false"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault"
-        android:label="JARVIS Companion">
+        android:label="JARVIS Companion"
+        android:usesCleartextTraffic="true">
 
         <service
             android:name=".VoiceService"
