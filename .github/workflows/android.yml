@@ -30,8 +30,9 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: 11076708
-          build-tools-version: 35.0.0
-          platforms: android-35
+          packages: |
+            build-tools;35.0.0
+            platforms;android-35
 
       - name: Configure local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
