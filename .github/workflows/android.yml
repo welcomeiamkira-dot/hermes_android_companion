@@ -38,8 +38,6 @@ jobs:
           mv cmdline-tools latest
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0" "platforms;android-35"
-        env:
-          PATH: ${{ env.ANDROID_HOME }}/cmdline-tools/latest/bin:${{ env.ANDROID_HOME }}/platform-tools:${{ env.PATH }}
 
       - name: Configure local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
@@ -53,6 +51,7 @@ jobs:
           fi
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          PATH: ${{ env.ANDROID_HOME }}/cmdline-tools/latest/bin:${{ env.ANDROID_HOME }}/platform-tools:${{ env.PATH }}
 
       - uses: actions/upload-artifact@v4
         with:
