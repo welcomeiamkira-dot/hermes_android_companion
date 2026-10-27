@@ -51,7 +51,6 @@ jobs:
           fi
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
-          PATH: ${{ env.ANDROID_HOME }}/cmdline-tools/latest/bin:${{ env.ANDROID_HOME }}/platform-tools:${{ env.PATH }}
 
       - uses: actions/upload-artifact@v4
         with:
