@@ -129,7 +129,7 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "App startup error: ${e.message}", Toast.LENGTH_LONG).show()
     }
 
-    private fun requestPermissions() {
+private fun requestPermissions() {
         val missing = PERMISSIONS.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
