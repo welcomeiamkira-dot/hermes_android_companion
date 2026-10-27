@@ -22,6 +22,10 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        private const val TAG = "MainActivity"
+        const val ACTION_WAKE_WORD_DETECTED = "com.kirti.jarvis.WAKE_WORD_DETECTED"
+    }
     private lateinit var webView: WebView
     private lateinit var errorView: LinearLayout
     private lateinit var retryButton: Button
@@ -291,10 +295,5 @@ class MainActivity : AppCompatActivity() {
         if (wakeWordActive) {
             WakeWordService.stopService(this)
         }
-    }
-
-    companion object {
-        private const val TAG = "MainActivity"
-        const val ACTION_WAKE_WORD_DETECTED = "com.kirti.jarvis.WAKE_WORD_DETECTED"
     }
 }
