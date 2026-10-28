@@ -29,6 +29,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private lateinit var errorView: LinearLayout
     private lateinit var retryButton: Button
+    private lateinit var messageInput: EditText
+    private lateinit var sendButton: ImageButton
     private var speechRecognizer: SpeechRecognizer? = null
     private var textToSpeech: TextToSpeech? = null
     private var isListening = false
@@ -57,6 +59,8 @@ class MainActivity : AppCompatActivity() {
             webView = findViewById(R.id.webView)
             errorView = findViewById(R.id.errorView)
             retryButton = findViewById(R.id.retryButton)
+            messageInput = findViewById(R.id.messageInput)
+            sendButton = findViewById(R.id.sendButton)
 
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
@@ -118,6 +122,7 @@ class MainActivity : AppCompatActivity() {
         setupVoiceButton()
         setupWakeWordToggle()
         setupScreenshotButton()
+        setupTextInput()
 
         // Request permissions
         requestPermissions()
@@ -287,6 +292,27 @@ class MainActivity : AppCompatActivity() {
         val screenshotButton = findViewById<FloatingActionButton>(R.id.screenshotButton)
         screenshotButton.setOnClickListener {
             Toast.makeText(this, "Screenshot feature coming soon", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupTextInput() {
+        sendButton.setOnClickListener {
+            val text = messageInput.text.toString().trim()
+            if (text.isNotEmpty()) {
+                sendMessageToHermes(text)
+                messageInput.text.clear()
+            }
+        }
+
+        messageInput.setOnEditorActionListener { _, actionId, _ ->
+            val text = messageInput.text.toString().trim()
+            if (text.isNotEmpty() && actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEND) {
+                sendMessageToHermes(text)
+                messageInput.text.clear()
+                true
+            } else {
+                false
+            }
         }
     }
 

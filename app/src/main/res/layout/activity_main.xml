@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/background_light">
 
+    <!-- WebView fills space above input bar -->
     <WebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_above="@+id/inputBar" />
 
     <!-- Error View (shown when dashboard cannot load) -->
     <LinearLayout
@@ -16,32 +19,74 @@
         android:orientation="vertical"
         android:gravity="center"
         android:visibility="gone"
-        android:padding="32dp"
+        android:padding="24dp"
         android:background="@android:color/background_light">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="⚠️ Cannot connect to Hermes"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="12dp" />
 
         <TextView
             android:id="@+id/errorText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Make sure dashboard is running on port 9119"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:gravity="center"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="20dp" />
 
         <Button
             android:id="@+id/retryButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Retry"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Bottom Input Bar -->
+    <LinearLayout
+        android:id="@+id/inputBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:background="?android:attr/windowBackground"
+        android:elevation="4dp">
+
+        <EditText
+            android:id="@+id/messageInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Type a message..."
+            android:textSize="14sp"
+            android:inputType="textCapSentences|textAutoCorrect"
+            android:maxLines="3"
+            android:minLines="1"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:background="@android:drawable/edit_text"
+            android:layout_marginEnd="6dp" />
+
+        <ImageButton
+            android:id="@+id/sendButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/ic_menu_send"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:tint="@android:color/holo_green_dark"
+            android:contentDescription="Send" />
     </LinearLayout>
 
     <!-- Voice Input Button -->
@@ -49,9 +94,9 @@
         android:id="@+id/voiceButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_above="@id/inputBar"
         android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
+        android:layout_margin="10dp"
         android:src="@android:drawable/ic_btn_speak_now"
         android:contentDescription="Voice Input"
         android:tint="@android:color/white"
@@ -62,10 +107,10 @@
         android:id="@+id/screenshotButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_above="@id/inputBar"
         android:layout_toStartOf="@id/voiceButton"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="6dp"
+        android:layout_marginBottom="0dp"
         android:src="@android:drawable/ic_menu_camera"
         android:contentDescription="Screenshot"
         android:tint="@android:color/white"
@@ -76,13 +121,12 @@
         android:id="@+id/wakeWordToggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_above="@id/inputBar"
         android:layout_toStartOf="@id/screenshotButton"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="6dp"
         android:textOn="Wake: ON"
         android:textOff="Wake: OFF"
-        android:textSize="10sp"
-        android:padding="8dp" />
+        android:textSize="9sp"
+        android:padding="6dp" />
 
 </RelativeLayout>
