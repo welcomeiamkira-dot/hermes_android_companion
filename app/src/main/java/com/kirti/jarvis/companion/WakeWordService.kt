@@ -1,25 +1,18 @@
 package com.kirti.jarvis.companion
 
-import android.app.*
+import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.media.AudioRecord
-import android.media.MediaRecorder
-import android.os.IBinder
+import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import java.io.*
-import java.net.HttpURLConnection
-import java.net.URL
-import java.util.concurrent.Executors
+import java.util.*
 
 class WakeWordService : Service() {
-    private var audioRecord: AudioRecord? = null
-    private var isRecording = false
-    private val executor = Executors.newSingleThreadExecutor()
-    private var sampleRate = 16000
-    private var channelConfig = android.media.AudioFormat.CHANNEL_IN_MONO
-    private var audioFormat = android.media.AudioFormat.ENCODING_PCM_16BIT
+    private var speechRecognizer: SpeechRecognizer? = null
+    private var isListening = false
 
     override fun onCreate() {
         super.onCreate()
@@ -34,7 +27,7 @@ class WakeWordService : Service() {
                 "Wake Word Service",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Listening for wake word"
+                description = "Listening for 'Hey JARVIS'"
                 setSound(null, null)
             }
             val manager = getSystemService(NotificationManager::class.java)
@@ -60,48 +53,76 @@ class WakeWordService : Service() {
     }
 
     fun startListening() {
-        if (isRecording) return
-        isRecording = true
+        if (isListening) return
+        isListening = true
 
-        executor.execute {
-            try {
-                val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-                audioRecord = AudioRecord(
-                    MediaRecorder.AudioSource.VOICE_RECOGNITION,
-                    sampleRate,
-                    channelConfig,
-                    audioFormat,
-                    bufferSize
-                )
-
-                audioRecord?.startRecording()
-                val buffer = ByteArray(bufferSize)
-
-                while (isRecording) {
-                    val read = audioRecord?.read(buffer, 0, buffer.size) ?: 0
-                    if (read > 0) {
-                        // Send audio chunk to Hermes for wake word detection
-                        sendAudioToHermes(buffer, read)
-                    }
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this).apply {
+            setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: Bundle?) {
+                    Log.d(TAG, "Wake word ready")
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Wake word recording error", e)
+
+                override fun onBeginningOfSpeech() {}
+
+                override fun onRmsChanged(rmsdB: Float) {}
+
+                override fun onBufferReceived(buffer: ByteArray?) {}
+
+                override fun onEndOfSpeech() {
+                    if (isListening) startWakeWordLoop()
+                }
+
+                override fun onError(error: Int) {
+                    Log.e(TAG, "Wake word error: $error")
+                    if (isListening) startWakeWordLoop()
+                }
+
+                override fun onResults(results: Bundle?) {
+                    handleText(results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION))
+                    if (isListening) startWakeWordLoop()
+                }
+
+                override fun onPartialResults(partialResults: Bundle?) {
+                    handleText(partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION))
+                }
+
+                override fun onEvent(eventType: Int, params: Bundle?) {}
+            })
+
+            startWakeWordLoop()
+        }
+    }
+
+    private fun handleText(matches: ArrayList<String>?) {
+        val text = matches?.firstOrNull() ?: return
+        if (text.contains("jarvis", ignoreCase = true) ||
+            text.contains("hey", ignoreCase = true)) {
+            Log.d(TAG, "Wake word detected: $text")
+            val intent = Intent(MainActivity.ACTION_WAKE_WORD_DETECTED)
+            sendBroadcast(intent)
+        }
+    }
+
+    private fun startWakeWordLoop() {
+        if (!isListening) return
+        try {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
             }
+            speechRecognizer?.startListening(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Wake word loop error", e)
         }
     }
 
     fun stopListening() {
-        isRecording = false
-        audioRecord?.stop()
-        audioRecord?.release()
-        audioRecord = null
-    }
-
-    private fun sendAudioToHermes(buffer: ByteArray, length: Int) {
-        // Send audio data to Hermes gateway for wake word processing
-        // This can be implemented via WebSocket or HTTP POST
-        // For now, just log it
-        Log.d(TAG, "Audio chunk: $length bytes")
+        isListening = false
+        speechRecognizer?.stopListening()
+        speechRecognizer?.destroy()
+        speechRecognizer = null
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -109,7 +130,6 @@ class WakeWordService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         stopListening()
-        executor.shutdown()
     }
 
     companion object {

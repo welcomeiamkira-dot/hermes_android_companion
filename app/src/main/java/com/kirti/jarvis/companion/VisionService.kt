@@ -28,6 +28,13 @@ class VisionService : Service() {
     }
 
     fun startCapture(resultCode: Int, data: Intent) {
+        mediaProjection = getSystemService(android.media.projection.MediaProjectionManager::class.java)
+            ?.getMediaProjection(resultCode, data)
+        if (mediaProjection == null) {
+            Log.e(TAG, "Failed to get MediaProjection")
+            return
+        }
+
         val manager = getSystemService(DisplayManager::class.java)
         val display = manager.getDisplay(Display.DEFAULT_DISPLAY)
         val metrics = resources.displayMetrics
@@ -98,6 +105,8 @@ class VisionService : Service() {
         // TODO: Implement sending to Hermes gateway
         Log.d(TAG, "Screenshot to Hermes: ${bytes.size} bytes")
     }
+
+    var mediaProjection: android.media.projection.MediaProjection? = null
 
     fun stopCapture() {
         virtualDisplay?.release()

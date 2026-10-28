@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
         const val ACTION_WAKE_WORD_DETECTED = "com.kirti.jarvis.WAKE_WORD_DETECTED"
+        const val REQUEST_MEDIA_PROJECTION = 101
     }
     private lateinit var webView: WebView
     private lateinit var errorView: LinearLayout
@@ -35,6 +36,16 @@ class MainActivity : AppCompatActivity() {
     private var textToSpeech: TextToSpeech? = null
     private var isListening = false
     private var wakeWordActive = false
+    private lateinit var visionService: VisionService
+    private var mediaProjectionManager: android.media.projection.MediaProjectionManager? = null
+    private val wakeWordReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == ACTION_WAKE_WORD_DETECTED) {
+                Toast.makeText(this@MainActivity, "JARVIS activated", Toast.LENGTH_SHORT).show()
+                messageInput.requestFocus()
+            }
+        }
+    }
 
     private val PERMISSIONS = arrayOf(
         Manifest.permission.RECORD_AUDIO,
@@ -135,6 +146,13 @@ class MainActivity : AppCompatActivity() {
 
         // Request permissions
         requestPermissions()
+
+        // Init screen capture
+        visionService = VisionService()
+        mediaProjectionManager = getSystemService(android.media.projection.MediaProjectionManager::class.java)
+
+        // Listen for wake word broadcasts
+        registerReceiver(wakeWordReceiver, android.content.IntentFilter(ACTION_WAKE_WORD_DETECTED))
 
         // Load dashboard
         loadDashboard()
@@ -300,7 +318,30 @@ class MainActivity : AppCompatActivity() {
     private fun setupScreenshotButton() {
         val screenshotButton = findViewById<FloatingActionButton>(R.id.screenshotButton)
         screenshotButton.setOnClickListener {
-            Toast.makeText(this, "Screenshot feature coming soon", Toast.LENGTH_SHORT).show()
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                val intent = mediaProjectionManager?.createScreenCaptureIntent()
+                if (intent != null) {
+                    startActivityForResult(intent, REQUEST_MEDIA_PROJECTION)
+                } else {
+                    Toast.makeText(this, "Screen capture not supported", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, "Screen capture requires Android 5.0+", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_MEDIA_PROJECTION && resultCode == RESULT_OK && data != null) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                val projection = mediaProjectionManager?.getMediaProjection(resultCode, data)
+                if (projection != null) {
+                    visionService.mediaProjection = projection
+                    visionService.startCapture(resultCode, data)
+                    Toast.makeText(this, "Screen control active", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -332,5 +373,6 @@ class MainActivity : AppCompatActivity() {
         if (wakeWordActive) {
             WakeWordService.stopService(this)
         }
+        unregisterReceiver(wakeWordReceiver)
     }
 }
