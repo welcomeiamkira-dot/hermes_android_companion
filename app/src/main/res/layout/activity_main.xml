@@ -9,7 +9,8 @@
         android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/inputBar" />
+        android:layout_above="@id/inputBar"
+        android:layout_alignParentTop="true" />
 
     <!-- Error View (shown when dashboard cannot load) -->
     <LinearLayout
@@ -60,7 +61,7 @@
         android:paddingTop="6dp"
         android:paddingBottom="6dp"
         android:background="?android:attr/windowBackground"
-        android:elevation="4dp">
+        android:elevation="8dp">
 
         <EditText
             android:id="@+id/messageInput"
@@ -81,8 +82,8 @@
 
         <ImageButton
             android:id="@+id/sendButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:src="@android:drawable/ic_menu_send"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:tint="@android:color/holo_green_dark"

@@ -67,9 +67,18 @@ class MainActivity : AppCompatActivity() {
         webView.settings.databaseEnabled = true
         webView.settings.allowFileAccess = true
         webView.settings.allowContentAccess = true
-        webView.settings.displayZoomControls = false
+        webView.settings.displayZoomControls = true
+        webView.settings.builtInZoomControls = true
+        webView.settings.setSupportZoom(true)
         webView.settings.loadWithOverviewMode = true
         webView.settings.useWideViewPort = true
+
+        @Suppress("DEPRECATION")
+        window.setFlags(
+            android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
+        supportActionBar?.hide()
 
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
