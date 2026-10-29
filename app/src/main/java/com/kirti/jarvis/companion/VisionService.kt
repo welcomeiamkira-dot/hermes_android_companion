@@ -106,8 +106,6 @@ class VisionService : Service() {
         Log.d(TAG, "Screenshot to Hermes: ${bytes.size} bytes")
     }
 
-    var mediaProjection: android.media.projection.MediaProjection? = null
-
     fun stopCapture() {
         virtualDisplay?.release()
         imageReader?.close()
