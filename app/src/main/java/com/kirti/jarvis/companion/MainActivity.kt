@@ -329,10 +329,29 @@ class MainActivity : AppCompatActivity() {
             if (isChecked) {
                 WakeWordService.startService(this)
                 Toast.makeText(this, "Wake word activated: Say 'Hey JARVIS'", Toast.LENGTH_SHORT).show()
+                // Prompt for notification listener if not enabled
+                promptNotificationListener()
             } else {
                 WakeWordService.stopService(this)
                 Toast.makeText(this, "Wake word deactivated", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+    
+    private fun promptNotificationListener() {
+        val enabled = android.provider.Settings.Secure.getString(
+            contentResolver,
+            "enabled_notification_listeners"
+        ) ?: ""
+        if (!enabled.contains(packageName)) {
+            android.app.AlertDialog.Builder(this)
+                .setTitle("Enable Notification Access")
+                .setMessage("Hermes needs notification access to read notifications. Please enable it in the next screen.")
+                .setPositiveButton("Open Settings") { _, _ ->
+                    startActivity(android.content.Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"))
+                }
+                .setNegativeButton("Later", null)
+                .show()
         }
     }
 
