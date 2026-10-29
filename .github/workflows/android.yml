@@ -42,7 +42,20 @@ jobs:
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0" "platforms;android-35"
 
       - name: Configure local.properties
-        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+        env:
+          HERMES_TOKEN: ${{ secrets.HERMES_TOKEN }}
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "hermes.token=$HERMES_TOKEN" >> local.properties
+
+      - name: Download Vosk model
+        run: |
+          mkdir -p app/src/main/assets/model
+          curl -L -o /tmp/vosk-model.zip https://alphacephei.com/vosk/models/vosk-model-small-en-in-0.4.zip
+          unzip -q /tmp/vosk-model.zip -d /tmp/vosk-model-extracted
+          shopt -s nullglob
+          mv /tmp/vosk-model-extracted/vosk-model-small-en-in-0.4/* app/src/main/assets/model/
+          rm -rf /tmp/vosk-model-extracted /tmp/vosk-model.zip
 
       - name: Build Debug APK
         env:
@@ -59,5 +72,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
