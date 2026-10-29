@@ -20,7 +20,7 @@ import java.io.FileOutputStream
 class VisionService : Service() {
     private var imageReader: ImageReader? = null
     private var virtualDisplay: android.hardware.display.VirtualDisplay? = null
-    private var mediaProjection: android.media.projection.MediaProjection? = null
+    var mediaProjection: android.media.projection.MediaProjection? = null
     private val handler = Handler(Looper.getMainLooper())
 
     override fun onCreate() {
