@@ -148,7 +148,7 @@ class MainActivity : AppCompatActivity() {
         requestPermissions()
 
         // Init screen capture
-        visionService = VisionService()
+        visionService = VisionService(this)
         mediaProjectionManager = getSystemService(android.media.projection.MediaProjectionManager::class.java)
 
         // Listen for wake word broadcasts

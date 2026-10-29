@@ -1,14 +1,14 @@
 package com.kirti.jarvis.companion
 
-import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
 import android.media.Image
 import android.media.ImageReader
+import android.media.projection.MediaProjection
 import android.os.Handler
-import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import android.view.Display
@@ -17,27 +17,23 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 
-class VisionService : Service() {
+class VisionService(private val context: Context) {
     private var imageReader: ImageReader? = null
     private var virtualDisplay: android.hardware.display.VirtualDisplay? = null
-    var mediaProjection: android.media.projection.MediaProjection? = null
+    var mediaProjection: MediaProjection? = null
     private val handler = Handler(Looper.getMainLooper())
 
-    override fun onCreate() {
-        super.onCreate()
-    }
-
     fun startCapture(resultCode: Int, data: Intent) {
-        mediaProjection = getSystemService(android.media.projection.MediaProjectionManager::class.java)
+        mediaProjection = context.getSystemService(android.media.projection.MediaProjectionManager::class.java)
             ?.getMediaProjection(resultCode, data)
         if (mediaProjection == null) {
             Log.e(TAG, "Failed to get MediaProjection")
             return
         }
 
-        val manager = getSystemService(DisplayManager::class.java)
+        val manager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
         val display = manager.getDisplay(Display.DEFAULT_DISPLAY)
-        val metrics = resources.displayMetrics
+        val metrics = context.resources.displayMetrics
         val density = metrics.densityDpi
 
         imageReader = ImageReader.newInstance(metrics.widthPixels, metrics.heightPixels, PixelFormat.RGBA_8888, 2)
@@ -76,10 +72,7 @@ class VisionService : Service() {
                 )
                 bitmap.copyPixelsFromBuffer(buffer)
 
-                // Save screenshot
                 saveScreenshot(bitmap)
-
-                // Send to Hermes for OCR processing
                 sendToHermes(bitmap)
             }
         } catch (e: Exception) {
@@ -90,7 +83,7 @@ class VisionService : Service() {
     }
 
     private fun saveScreenshot(bitmap: Bitmap) {
-        val file = File(getExternalFilesDir(null), "screenshot_${System.currentTimeMillis()}.png")
+        val file = File(context.getExternalFilesDir(null), "screenshot_${System.currentTimeMillis()}.png")
         FileOutputStream(file).use { out ->
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
         }
@@ -98,11 +91,9 @@ class VisionService : Service() {
     }
 
     private fun sendToHermes(bitmap: Bitmap) {
-        // Convert bitmap to base64 and send to Hermes via WebSocket/HTTP
         val stream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 80, stream)
         val bytes = stream.toByteArray()
-        // TODO: Implement sending to Hermes gateway
         Log.d(TAG, "Screenshot to Hermes: ${bytes.size} bytes")
     }
 
@@ -110,13 +101,6 @@ class VisionService : Service() {
         virtualDisplay?.release()
         imageReader?.close()
         mediaProjection?.stop()
-    }
-
-    override fun onBind(intent: Intent?): IBinder? = null
-
-    override fun onDestroy() {
-        super.onDestroy()
-        stopCapture()
     }
 
     companion object {
