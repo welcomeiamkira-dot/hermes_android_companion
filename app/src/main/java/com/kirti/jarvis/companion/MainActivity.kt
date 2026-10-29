@@ -176,6 +176,21 @@ class MainActivity : AppCompatActivity() {
         if (missing.isNotEmpty()) {
             permissionLauncher.launch(missing.toTypedArray())
         }
+        
+        // Prompt once for battery optimization exemption (needed for always-on wake word)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            val prefs = getSharedPreferences("jarvis_prefs", MODE_PRIVATE)
+            if (!prefs.getBoolean("battery_opt_requested", false)) {
+                val pm = getSystemService(android.os.PowerManager::class.java)
+                if (pm != null && !pm.isIgnoringBatteryOptimizations(packageName)) {
+                    val intent = android.content.Intent(android.os.PowerManager.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = android.net.Uri.parse("package:$packageName")
+                    }
+                    startActivity(intent)
+                }
+                prefs.edit().putBoolean("battery_opt_requested", true).apply()
+            }
+        }
     }
 
     private fun loadDashboard() {
