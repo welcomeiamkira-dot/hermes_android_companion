@@ -183,7 +183,7 @@ class MainActivity : AppCompatActivity() {
             if (!prefs.getBoolean("battery_opt_requested", false)) {
                 val pm = getSystemService(android.os.PowerManager::class.java)
                 if (pm != null && !pm.isIgnoringBatteryOptimizations(packageName)) {
-                    val intent = android.content.Intent(android.os.PowerManager.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                    val intent = android.content.Intent("android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS").apply {
                         data = android.net.Uri.parse("package:$packageName")
                     }
                     startActivity(intent)
