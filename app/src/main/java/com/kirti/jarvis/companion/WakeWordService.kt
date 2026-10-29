@@ -104,7 +104,9 @@ class WakeWordService : Service() {
         if (text.contains("jarvis", ignoreCase = true) ||
             text.contains("hey", ignoreCase = true)) {
             Log.d(TAG, "Wake word detected: $text")
-            val intent = Intent(MainActivity.ACTION_WAKE_WORD_DETECTED)
+            val intent = Intent(MainActivity.ACTION_WAKE_WORD_DETECTED).apply {
+                putExtra("text", text)
+            }
             sendBroadcast(intent)
         }
     }
@@ -129,6 +131,11 @@ class WakeWordService : Service() {
         speechRecognizer?.stopListening()
         speechRecognizer?.destroy()
         speechRecognizer = null
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startListening()
+        return START_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

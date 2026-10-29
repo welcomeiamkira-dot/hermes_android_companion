@@ -41,8 +41,14 @@ class MainActivity : AppCompatActivity() {
     private val wakeWordReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == ACTION_WAKE_WORD_DETECTED) {
-                Toast.makeText(this@MainActivity, "JARVIS activated", Toast.LENGTH_SHORT).show()
+                val text = intent.getStringExtra("text") ?: ""
+                Toast.makeText(this@MainActivity, "JARVIS: $text", Toast.LENGTH_SHORT).show()
                 messageInput.requestFocus()
+                // Send the full phrase to Hermes (strip wake word for cleaner input)
+                val command = text.replace(Regex("(?i)hey\\s*|jarvis\\s*"), "").trim()
+                if (command.isNotEmpty()) {
+                    sendMessageToHermes(command)
+                }
             }
         }
     }
